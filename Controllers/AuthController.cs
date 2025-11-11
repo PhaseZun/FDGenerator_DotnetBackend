@@ -1,13 +1,7 @@
 using AuthApi.Models;
 using AuthApi.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
-using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace AuthApi.Controllers
 {
@@ -17,13 +11,11 @@ namespace AuthApi.Controllers
     {
         private readonly AuthService _authService;
         private readonly ILogger<AuthController> _logger;
-        private readonly IConfiguration _config;
 
-        public AuthController(AuthService authService, ILogger<AuthController> logger, IConfiguration config)
+        public AuthController(AuthService authService, ILogger<AuthController> logger)
         {
             _authService = authService;
             _logger = logger;
-            _config = config;
         }
 
         [HttpPost("login")]
@@ -48,8 +40,7 @@ namespace AuthApi.Controllers
                 return Unauthorized(result);
             }
 
-            // ✅ Generate JWT token
-            var token = GenerateJwtToken(request.Username);
+            var token = result.Token;
 
             return Ok(new LoginResponse
             {
@@ -58,27 +49,8 @@ namespace AuthApi.Controllers
                 Token = token
             });
         }
-
-        // 🔐 Token generator method
-        private string GenerateJwtToken(string username)
-        {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-            var claims = new[]
-            {
-                new Claim(ClaimTypes.Name, username),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
-
-            var token = new JwtSecurityToken(
-                issuer: _config["Jwt:Issuer"],
-                audience: _config["Jwt:Audience"],
-                claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(15), // 👈 Token expiry here
-                signingCredentials: credentials);
-
-            return new JwtSecurityTokenHandler().WriteToken(token);
-        }
     }
+
+        
+   
 }

@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using AuthApi.Services;
 using AuthApi.Models;
-using Microsoft.Extensions.Logging;
 
 namespace AuthApi.Controllers
 {
@@ -9,9 +8,9 @@ namespace AuthApi.Controllers
     [Route("api/[controller]")]
     public class FDListController : ControllerBase
     {
-         private readonly PdfService _pdfService;
-        
+        private readonly PdfService _pdfService;
         private readonly ILogger<FDListController> _logger;
+        
         private static readonly List<FDModel> fdList = new List<FDModel>
         {
             new FDModel
@@ -66,8 +65,6 @@ namespace AuthApi.Controllers
             }
         };
 
-
-
         public FDListController(PdfService pdfService,ILogger<FDListController> logger)
         {
             _pdfService = pdfService;
@@ -97,7 +94,6 @@ namespace AuthApi.Controllers
             _logger.LogInformation("📩 Received request to download PDF for FD ID: {Id}", id);
                 var fd = fdList.FirstOrDefault(f => f.Id == id);
                 if (fd == null) return NotFound();
-                
                 _logger.LogInformation("📝 Generating PDF for FD ID: {Id}, Bank: {Bank}", id, fd.BankName);
 
 
@@ -105,7 +101,6 @@ namespace AuthApi.Controllers
                 await _pdfService.GenerateFdPdfAsync(new List<FDModel> { fd }, memoryStream);
                 
                 _logger.LogInformation("✅ PDF successfully generated for FD ID: {Id}", id);
-
                 return File(memoryStream.ToArray(), "application/pdf", $"FD_{id}.pdf");
             
             
