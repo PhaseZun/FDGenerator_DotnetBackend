@@ -72,37 +72,38 @@ namespace AuthApi.Controllers
         }
 
         // Step 1: Get FD list as JSON
-        [HttpGet("list/{token}")]
-        public IActionResult GetFdList(string token)
+        [HttpGet("list/{userid}/{token}")]
+        public IActionResult GetFdList(string token,string userid)
         {   
                 _logger.LogInformation("📩 Received GET request for FD list with token: {Token}", token);
-
-                // Example: validate the token (simple check for demo)
-                if (string.IsNullOrEmpty(token))
+                if (string.IsNullOrEmpty(token) && string.IsNullOrEmpty(userid))
                 {
-                    _logger.LogWarning("⚠️ Invalid or missing token: {Token}", token);
                     return Unauthorized("Invalid or missing token.");
                 }
                 _logger.LogInformation("✅ Token valid. Returning {Count} FDs", fdList.Count);
                 return Ok(fdList);
-            }
+        }
 
         // Step 2: Generate PDF from FD list and return
-       [HttpGet("downloadpdf/{id}")]
-        public async Task<IActionResult> DownloadPdf(int id)
+       [HttpGet("downloadpdf/{id}/{token}")]
+        public async Task<IActionResult> DownloadPdf(int id,string token)
         {
-            _logger.LogInformation("📩 Received request to download PDF for FD ID: {Id}", id);
+            if(string.IsNullOrEmpty(token))
+            {
+                    return Unauthorized("Invalid or missing token.");
+            }
+            else
+            {
+              _logger.LogInformation("📩 Received request to download PDF for FD ID: {Id}", id);
                 var fd = fdList.FirstOrDefault(f => f.Id == id);
                 if (fd == null) return NotFound();
-                _logger.LogInformation("📝 Generating PDF for FD ID: {Id}, Bank: {Bank}", id, fd.BankName);
-
 
                 using var memoryStream = new MemoryStream();
                 await _pdfService.GenerateFdPdfAsync(new List<FDModel> { fd }, memoryStream);
                 
-                _logger.LogInformation("✅ PDF successfully generated for FD ID: {Id}", id);
-                return File(memoryStream.ToArray(), "application/pdf", $"FD_{id}.pdf");
-            
+              _logger.LogInformation("✅ PDF successfully generated for FD ID: {Id}", id);
+            return File(memoryStream.ToArray(), "application/pdf", $"FD_{id}.pdf"); 
+            }
             
         }
 
