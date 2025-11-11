@@ -39,7 +39,7 @@ namespace AuthApi.Services
                 yPoint += 50;
 
                 // FD details
-                gfx.DrawString($"FD ID: {fd.Id}", titleFont, XBrushes.Black, new XPoint(margin, yPoint));
+                gfx.DrawString($"FD ID: {fd.fdId}", titleFont, XBrushes.Black, new XPoint(margin, yPoint));
                 yPoint += 25;
                 gfx.DrawString($"Bank Name: {fd.BankName}", contentFont, XBrushes.Black, new XPoint(margin, yPoint));
                 yPoint += 25;

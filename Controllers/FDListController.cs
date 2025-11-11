@@ -15,7 +15,8 @@ namespace AuthApi.Controllers
         {
             new FDModel
             {
-                Id = 1, Amount = 50000, InterestRate = 7.5,
+                
+                fdId = 1, Amount = 50000, InterestRate = 7.5,
                 InvestedDate = new DateTime(2023, 01, 15),
                 MaturityDate = new DateTime(2026, 01, 15),
                 TenureMonths = 36,
@@ -25,7 +26,7 @@ namespace AuthApi.Controllers
             },
             new FDModel
             {
-                Id = 2, Amount = 75000, InterestRate = 7.2,
+                fdId = 2, Amount = 75000, InterestRate = 7.2,
                 InvestedDate = new DateTime(2024, 03, 22),
                 MaturityDate = new DateTime(2027, 03, 22),
                 TenureMonths = 36,
@@ -35,7 +36,7 @@ namespace AuthApi.Controllers
             },
             new FDModel
             {
-                Id = 3, Amount = 100000, InterestRate = 7.8,
+                fdId = 3, Amount = 100000, InterestRate = 7.8,
                 InvestedDate = new DateTime(2023, 08, 10),
                 MaturityDate = new DateTime(2026, 08, 10),
                 TenureMonths = 36,
@@ -45,7 +46,7 @@ namespace AuthApi.Controllers
             },
             new FDModel
             {
-                Id = 4, Amount = 65000, InterestRate = 6.9,
+                fdId = 4, Amount = 65000, InterestRate = 6.9,
                 InvestedDate = new DateTime(2022, 12, 01),
                 MaturityDate = new DateTime(2025, 12, 01),
                 TenureMonths = 36,
@@ -55,7 +56,7 @@ namespace AuthApi.Controllers
             },
             new FDModel
             {
-                Id = 5, Amount = 85000, InterestRate = 7.0,
+                fdId = 5, Amount = 85000, InterestRate = 7.0,
                 InvestedDate = new DateTime(2024, 06, 15),
                 MaturityDate = new DateTime(2027, 06, 15),
                 TenureMonths = 36,
@@ -72,11 +73,11 @@ namespace AuthApi.Controllers
         }
 
         // Step 1: Get FD list as JSON
-        [HttpGet("list/{userid}/{token}")]
-        public IActionResult GetFdList(string token,string userid)
+        [HttpGet("list/{userId}/{token}")]
+        public IActionResult GetFdList(string token,string userId)
         {   
                 _logger.LogInformation("📩 Received GET request for FD list with token: {Token}", token);
-                if (string.IsNullOrEmpty(token) && string.IsNullOrEmpty(userid))
+                if (string.IsNullOrEmpty(token) && string.IsNullOrEmpty(userId))
                 {
                     return Unauthorized("Invalid or missing token.");
                 }
@@ -85,8 +86,8 @@ namespace AuthApi.Controllers
         }
 
         // Step 2: Generate PDF from FD list and return
-       [HttpGet("downloadpdf/{id}/{token}")]
-        public async Task<IActionResult> DownloadPdf(int id,string token)
+       [HttpGet("downloadpdf/{userId}/{fdId}/{token}")]
+        public async Task<IActionResult> DownloadPdf(string userId,int fdId,string token)
         {
             if(string.IsNullOrEmpty(token))
             {
@@ -94,15 +95,15 @@ namespace AuthApi.Controllers
             }
             else
             {
-              _logger.LogInformation("📩 Received request to download PDF for FD ID: {Id}", id);
-                var fd = fdList.FirstOrDefault(f => f.Id == id);
+              _logger.LogInformation("📩 Received request to download PDF for FD ID: {Id}", fdId);
+                var fd = fdList.FirstOrDefault(f => f.fdId == fdId);
                 if (fd == null) return NotFound();
 
                 using var memoryStream = new MemoryStream();
                 await _pdfService.GenerateFdPdfAsync(new List<FDModel> { fd }, memoryStream);
                 
-              _logger.LogInformation("✅ PDF successfully generated for FD ID: {Id}", id);
-            return File(memoryStream.ToArray(), "application/pdf", $"FD_{id}.pdf"); 
+              _logger.LogInformation("✅ PDF successfully generated for FD ID: {Id}", fdId);
+            return File(memoryStream.ToArray(), "application/pdf", $"FD_{fdId}.pdf"); 
             }
             
         }

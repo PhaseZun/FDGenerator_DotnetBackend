@@ -14,12 +14,12 @@ namespace AuthApi.Services
    public async Task<LoginResponse> ValidateUserAsync(LoginRequest request)
    {
       await Task.Delay(100);
-    
         return new LoginResponse
         {
             Success = true,
             Token = "dummy-token-123",
-            Message = "Login successful (mocked)"
+            Message = "Login successful (mocked)",
+            userId = request.Username
         };
        
     }

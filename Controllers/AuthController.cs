@@ -46,7 +46,8 @@ namespace AuthApi.Controllers
             {
                 Success = true,
                 Message = "Login successful",
-                Token = token
+                Token = token,
+                userId=request.Username
             });
         }
     }
