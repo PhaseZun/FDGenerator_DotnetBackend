@@ -1,4 +1,6 @@
 
+using StackExchange.Redis;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // ------------------------------
@@ -13,6 +15,12 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod();
     });
 });
+//------------------------------
+// Redis Setup
+//------------------------------
+builder.Services.AddSingleton<IConnectionMultiplexer>(
+    ConnectionMultiplexer.Connect("localhost:6379")
+);
 // ------------------------------
 // 2️⃣ Logging setup
 // ------------------------------

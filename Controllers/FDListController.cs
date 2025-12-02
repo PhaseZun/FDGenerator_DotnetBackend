@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using AuthApi.Services;
 using AuthApi.Models;
+using StackExchange.Redis;//redis library
+using System.Text.Json;
 
 namespace AuthApi.Controllers
 {
@@ -10,6 +12,7 @@ namespace AuthApi.Controllers
     {
         private readonly PdfService _pdfService;
         private readonly ILogger<FDListController> _logger;
+        private readonly IDatabase _redisDb;
         
         private static readonly List<FDModel> fdList = new List<FDModel>
         {
@@ -66,22 +69,33 @@ namespace AuthApi.Controllers
             }
         };
 
-        public FDListController(PdfService pdfService,ILogger<FDListController> logger)
+        public FDListController(PdfService pdfService,ILogger<FDListController> logger,IConnectionMultiplexer redis)
         {
             _pdfService = pdfService;
             _logger = logger;
+            _redisDb = redis.GetDatabase();//redis databse call in object 
         }
 
         // Step 1: Get FD list as JSON
         [HttpGet("list/{userId}/{token}")]
-        public IActionResult GetFdList(string token,string userId)
+        public async Task<IActionResult> GetFdList(string userId,string token)
         {   
-                _logger.LogInformation("📩 Received GET request for FD list with token: {Token}", token);
+                string cacheKey = $"FDListKey:{userId}";
+                var jsonData = await _redisDb.StringGetAsync(cacheKey);
                 if (string.IsNullOrEmpty(token) && string.IsNullOrEmpty(userId))
                 {
                     return Unauthorized("Invalid or missing token.");
                 }
-                _logger.LogInformation("✅ Token valid. Returning {Count} FDs", fdList.Count);
+            if (jsonData.HasValue)
+            {
+                using var ms = new MemoryStream(jsonData);
+                var redisFdList = await JsonSerializer.DeserializeAsync<List<FDModel>>(ms);
+                //var redisFdList = JsonSerializer.Deserialize<List<FDModel>>(jsonData.ToString());
+                return Ok(redisFdList); 
+            }
+                _logger.LogInformation("✅ Token valid. Returning {Count} FDs and Stored the data into the redis", fdList.Count);
+                await _redisDb.StringSetAsync(cacheKey, JsonSerializer.Serialize(fdList), TimeSpan.FromMinutes(5)  // ✅ TTL = 1 minutes
+                );
                 return Ok(fdList);
         }
 
@@ -107,6 +121,7 @@ namespace AuthApi.Controllers
             }
             
         }
+        
 
 
 

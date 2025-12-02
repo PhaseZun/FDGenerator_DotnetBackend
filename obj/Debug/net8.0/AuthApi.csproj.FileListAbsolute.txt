@@ -57,3 +57,5 @@ C:\Users\Administrator\Desktop\API_FeaturedPDFDownload\AuthApi\obj\Debug\net8.0\
 C:\Users\Administrator\Desktop\API_FeaturedPDFDownload\AuthApi\obj\Debug\net8.0\AuthApi.pdb
 C:\Users\Administrator\Desktop\API_FeaturedPDFDownload\AuthApi\obj\Debug\net8.0\AuthApi.genruntimeconfig.cache
 C:\Users\Administrator\Desktop\API_FeaturedPDFDownload\AuthApi\obj\Debug\net8.0\ref\AuthApi.dll
+C:\Users\Administrator\Desktop\API_FeaturedPDFDownload\AuthApi\bin\Debug\net8.0\Pipelines.Sockets.Unofficial.dll
+C:\Users\Administrator\Desktop\API_FeaturedPDFDownload\AuthApi\bin\Debug\net8.0\StackExchange.Redis.dll
