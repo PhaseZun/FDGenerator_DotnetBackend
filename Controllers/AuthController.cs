@@ -29,11 +29,7 @@ namespace AuthApi.Controllers
              var jsonData = await _redisDb.StringGetAsync(cacheKey);
             if (string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.Password))
             {
-                return BadRequest(new LoginResponse
-                {
-                    Success = false,
-                    Message = "Username or password is missing"
-                });
+               throw new Exception("Invalid userid and password");
             }
             if(jsonData.HasValue)
             {
@@ -45,20 +41,8 @@ namespace AuthApi.Controllers
 
             var result = await _authService.ValidateUserAsync(request);
 
-            if (!result.Success)
-            {
-                _logger.LogWarning("❌ Invalid login for user {Username}", request.Username);
-                return Unauthorized(result);
-            }
-
             await _redisDb.StringSetAsync(cacheKey,JsonSerializer.Serialize(result),TimeSpan.FromMinutes(30));
-            return Ok(new LoginResponse
-            {
-                Success = true,
-                Message = "Login successful",
-                Token = result.Token,
-                userId=request.Username
-            });
+            return Ok(result);
 
             
         }

@@ -4,7 +4,7 @@ namespace AuthApi.Models
 {
     public class FDModel
 {
-    public string? userId { get; set;}
+    public string? username { get; set;}
     public int fdId { get; set; }
     public decimal Amount { get; set; }
     public double InterestRate { get; set; }

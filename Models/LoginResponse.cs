@@ -1,10 +1,13 @@
-namespace AuthApi.Models
+using System.Text.Json.Serialization;
+
+public class LoginResponse
 {
-    public class LoginResponse
-    {
-        public bool Success { get; set; }
-        public string? Token { get; set; }
-        public string? Message { get; set; }
-        public string? userId {get; set;}
-    }
+    [JsonPropertyName("userId")]
+    public int UserId { get; set; }
+
+    [JsonPropertyName("username")]
+    public string? Username { get; set; }
+
+    [JsonPropertyName("token")]
+    public string? Token { get; set; }
 }
