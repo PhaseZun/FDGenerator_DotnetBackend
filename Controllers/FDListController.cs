@@ -35,7 +35,7 @@ namespace AuthApi.Controllers
                 var apiUrl = $"{baseUrl}list";
                 string cacheKey = $"FDListKey:{userId}";
                 var jsonData = await _redisDb.StringGetAsync(cacheKey);
-                if (string.IsNullOrEmpty(token) && string.IsNullOrEmpty(userId))
+                if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(userId))
                 {
                     return Unauthorized("Invalid or missing token.");
                 }
@@ -57,7 +57,7 @@ namespace AuthApi.Controllers
               {
              PropertyNameCaseInsensitive = true
              });
-                await _redisDb.StringSetAsync(cacheKey,JsonSerializer.Serialize(dataFdList) , TimeSpan.FromMinutes(5)  // ✅ TTL = 1 minutes
+                await _redisDb.StringSetAsync(cacheKey,JsonSerializer.Serialize(dataFdList) , TimeSpan.FromMinutes(30)  // ✅ TTL = 30 minutes
                 );
                 
                 return Ok(dataFdList);
@@ -70,7 +70,7 @@ namespace AuthApi.Controllers
                 var apiUrl = $"{baseUrl}list";
                 string cacheKey = $"FDListKey:{userId}-{fdId}";
                 var jsonData = await _redisDb.StringGetAsync(cacheKey);
-                if (string.IsNullOrEmpty(token) && string.IsNullOrEmpty(userId))
+                if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(userId))
                 {
                     return Unauthorized("Invalid or missing token.");
                 }
@@ -90,7 +90,7 @@ namespace AuthApi.Controllers
                     {
                      PropertyNameCaseInsensitive = true
                 });
-                await _redisDb.StringSetAsync(cacheKey, JsonSerializer.Serialize(fd), TimeSpan.FromMinutes(5)  // ✅ TTL = 1 minutes
+                await _redisDb.StringSetAsync(cacheKey, JsonSerializer.Serialize(fd), TimeSpan.FromMinutes(30)  // ✅ TTL = 30 minutes
                 );
                 
                 return Ok(fd);
