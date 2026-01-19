@@ -4,6 +4,7 @@ using AuthApi.Models;
 using StackExchange.Redis;//redis library
 using System.Text.Json;
 using System.Text;
+using System.Net;
 
 
 namespace AuthApi.Controllers
@@ -33,7 +34,7 @@ namespace AuthApi.Controllers
         {   
                 var baseUrl = _configuration["ExternalApis:FDListApiBaseUrl"];
                 var apiUrl = $"{baseUrl}list";
-                string cacheKey = $"FDListKey:{userId}";
+                string cacheKey = $"FDListsKey:{userId}";
                 var jsonData = await _redisDb.StringGetAsync(cacheKey);
                 if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(userId))
                 {
@@ -41,7 +42,7 @@ namespace AuthApi.Controllers
                 }
             if (jsonData.HasValue)
             {
-                using var ms = new MemoryStream(jsonData);
+                using var ms = new MemoryStream(jsonData!);
                 var redisFdList = await JsonSerializer.DeserializeAsync<List<FDModel>>(ms);
                 //var redisFdList = JsonSerializer.Deserialize<List<FDModel>>(jsonData.ToString());
                 return Ok(redisFdList); 
@@ -57,7 +58,7 @@ namespace AuthApi.Controllers
               {
              PropertyNameCaseInsensitive = true
              });
-                await _redisDb.StringSetAsync(cacheKey,JsonSerializer.Serialize(dataFdList) , TimeSpan.FromMinutes(30)  // ✅ TTL = 30 minutes
+                await _redisDb.StringSetAsync(cacheKey,JsonSerializer.Serialize(dataFdList) , TimeSpan.FromMinutes(5)  // ✅ TTL = 30 minutes
                 );
                 
                 return Ok(dataFdList);
@@ -68,7 +69,7 @@ namespace AuthApi.Controllers
         {   
                 var baseUrl = _configuration["ExternalApis:FDListApiBaseUrl"];
                 var apiUrl = $"{baseUrl}list";
-                string cacheKey = $"FDListKey:{userId}-{fdId}";
+                string cacheKey = $"FDListIdKey:{userId}-{fdId}";
                 var jsonData = await _redisDb.StringGetAsync(cacheKey);
                 if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(userId))
                 {
@@ -76,13 +77,21 @@ namespace AuthApi.Controllers
                 }
             if (jsonData.HasValue)
             {
-                var fdredis = JsonSerializer.Deserialize<FDModel>(jsonData);
+                var fdredis = JsonSerializer.Deserialize<FDModel>(jsonData!);
                 return Ok(fdredis); 
             }
             var requestMessage = new HttpRequestMessage(HttpMethod.Get, apiUrl);
             requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
             var response = await _httpClient.SendAsync(requestMessage);
+               if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    return StatusCode((int)response.StatusCode);        
+                }
+                if (!response.IsSuccessStatusCode)
+                {
+                    return StatusCode((int)response.StatusCode);
+                }
                 var responseJson = await response.Content.ReadAsStringAsync();
              var fd = JsonSerializer.Deserialize<FDModel>(
                       responseJson,
@@ -90,7 +99,7 @@ namespace AuthApi.Controllers
                     {
                      PropertyNameCaseInsensitive = true
                 });
-                await _redisDb.StringSetAsync(cacheKey, JsonSerializer.Serialize(fd), TimeSpan.FromMinutes(30)  // ✅ TTL = 30 minutes
+                await _redisDb.StringSetAsync(cacheKey, JsonSerializer.Serialize(fd), TimeSpan.FromMinutes(5)  // ✅ TTL = 30 minutes
                 );
                 
                 return Ok(fd);
@@ -106,14 +115,14 @@ namespace AuthApi.Controllers
             var baseUrl = _configuration["ExternalApis:FDListApiBaseUrl"];
             var apiUrl = $"{baseUrl}fd/{fdId}";
 
-            string cacheKey = $"FDListKey:{userId}-{fdId}";
-            List<FDModel> fdList;
+            string cacheKey = $"FDListPDFKey:{userId}-{fdId}";
+            List<FDModel>? fdList;
 
             var jsonData = await _redisDb.StringGetAsync(cacheKey);
 
             if (jsonData.HasValue)
             {
-                fdList = JsonSerializer.Deserialize<List<FDModel>>(jsonData);
+                fdList = JsonSerializer.Deserialize<List<FDModel>>(jsonData!);
             }
             else
             {
@@ -122,7 +131,10 @@ namespace AuthApi.Controllers
                     new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
                 var response = await _httpClient.SendAsync(requestMessage);
-
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                        return StatusCode((int)response.StatusCode);
+                }
                 if (!response.IsSuccessStatusCode)
                     return StatusCode((int)response.StatusCode);
 
@@ -144,7 +156,7 @@ namespace AuthApi.Controllers
             }
 
             using var memoryStream = new MemoryStream();
-            await _pdfService.GenerateFdPdfAsync(fdList, memoryStream);
+            await _pdfService.GenerateFdPdfAsync(fdList!, memoryStream);
 
             return File(memoryStream.ToArray(), "application/pdf", $"FD_{fdId}.pdf");
         }

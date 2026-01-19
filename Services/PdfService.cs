@@ -45,7 +45,7 @@ namespace AuthApi.Services
                 yPoint += 25;
                 gfx.DrawString($"Account Number: {fd.AccountNumber}", contentFont, XBrushes.Black, new XPoint(margin, yPoint));
                 yPoint += 25;
-                gfx.DrawString($"Invested Amount: ₹{fd.Amount:N2}", contentFont, XBrushes.Black, new XPoint(margin, yPoint));
+                gfx.DrawString($"Invested Amount: Rs. {fd.Amount:N2}", contentFont, XBrushes.Black, new XPoint(margin, yPoint));
                 yPoint += 25;
                 gfx.DrawString($"Interest Rate: {fd.InterestRate}%", contentFont, XBrushes.Black, new XPoint(margin, yPoint));
                 yPoint += 25;

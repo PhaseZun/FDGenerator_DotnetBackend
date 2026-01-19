@@ -33,15 +33,15 @@ namespace AuthApi.Controllers
             }
             if(jsonData.HasValue)
             {
-                using var ms = new MemoryStream(jsonData);
+                using var ms = new MemoryStream(jsonData!);
                 var redisFdList = await JsonSerializer.DeserializeAsync<LoginResponse>(ms);
                 return Ok(redisFdList); 
             }
             _logger.LogInformation("📩 Login attempt: {Username}", request.Username);
 
             var result = await _authService.ValidateUserAsync(request);
-
-            await _redisDb.StringSetAsync(cacheKey,JsonSerializer.Serialize(result),TimeSpan.FromMinutes(30));
+            
+            await _redisDb.StringSetAsync(cacheKey,JsonSerializer.Serialize(result),TimeSpan.FromMinutes(5));
             return Ok(result);
 
             

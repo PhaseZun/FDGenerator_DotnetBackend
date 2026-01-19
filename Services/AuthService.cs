@@ -38,7 +38,7 @@ namespace AuthApi.Services
     {
         PropertyNameCaseInsensitive = true
     });
-    return loginResponse;
+    return loginResponse!;
   }
 
     }
