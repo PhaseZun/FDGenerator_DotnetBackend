@@ -107,7 +107,7 @@ namespace AuthApi.Controllers
 
         // Step 2: Generate PDF from FD list and return
       [HttpGet("downloadpdf/{userId}/{fdId}/{token}")]
-        public async Task<IActionResult> DownloadPdf(string userId, int fdId, string token)
+        public async Task<IActionResult> DownloadPdf( int fdId, string token)
         {
             if (string.IsNullOrEmpty(token))
                 return Unauthorized("Invalid or missing token.");
@@ -115,7 +115,7 @@ namespace AuthApi.Controllers
             var baseUrl = _configuration["ExternalApis:FDListApiBaseUrl"];
             var apiUrl = $"{baseUrl}fd/{fdId}";
 
-            string cacheKey = $"FDListPDFKey:{userId}-{fdId}";
+            string cacheKey = $"FDListPDFIdKey:{fdId}";
             List<FDModel>? fdList;
 
             var jsonData = await _redisDb.StringGetAsync(cacheKey);
